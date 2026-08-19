@@ -8,6 +8,24 @@ export const inject = ["systemPrompt", "tools"];
 const DEFAULT_MEMORY_ROOT = resolve(os.homedir(), ".dsh", "memory");
 
 function defineTool(options) {
+  if (options && options.parameters && options.parameters.type !== "object") {
+    const raw = options.parameters;
+    const properties = {};
+    const required = [];
+    for (const [key, val] of Object.entries(raw)) {
+      properties[key] = {
+        type: val.type || "string",
+        ...(val.description ? { description: val.description } : {}),
+      };
+      if (val.required) required.push(key);
+    }
+    options.parameters = {
+      type: "object",
+      properties,
+      required,
+      additionalProperties: false,
+    };
+  }
   return options;
 }
 
