@@ -1,5 +1,3 @@
-import { defineTool } from "@deepseek-ai/dsh-tools";
-import z from "@deepseek-ai/schemastery";
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import os from "node:os";
@@ -9,11 +7,9 @@ export const inject = ["systemPrompt", "tools"];
 
 const DEFAULT_MEMORY_ROOT = resolve(os.homedir(), ".dsh", "memory");
 
-export const Config = z.object({
-  memoryRoot: z.string().default(DEFAULT_MEMORY_ROOT).description("全局项目记忆存储根目录"),
-  maxChars: z.number().default(12000).description("单项目记忆注入最大字符数"),
-  autoDream: z.boolean().default(true).description("是否开启 MiMoCode 原版后台自动沉淀与蒸馏 (Dreaming & Distilling)")
-});
+function defineTool(options) {
+  return options;
+}
 
 function projectKey(cwd) {
   if (!cwd || typeof cwd !== "string" || cwd.length === 0) return "root";
@@ -146,12 +142,12 @@ export function apply(ctx, config) {
         type: "object",
         additionalProperties: true,
         properties: {
-          result: { type: "string", required: true }
+          result: { type: "string" }
         }
       },
       render: (_args, value) => [{
         type: "text",
-        text: value.result
+        text: typeof value?.result === "string" ? value.result : String(value || "")
       }]
     },
     execute: async ({ section, content, action = "append" }, toolCtx) => {
